@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wochenplan Update</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #f5f5f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.card { background: #fff; border-radius: 20px; padding: 32px 24px; max-width: 400px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+.icon { font-size: 48px; margin-bottom: 16px; }
+h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+p { font-size: 14px; color: #888; margin-bottom: 24px; line-height: 1.6; }
+.btn { display: block; width: 100%; padding: 16px; background: #1D9E75; color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
+.btn:active { opacity: 0.85; }
+.btn.loading { background: #aaa; cursor: not-allowed; }
+.status { font-size: 14px; color: #1D9E75; font-weight: 500; min-height: 20px; }
+.status.err { color: #c0392b; }
+.week-info { background: #f5f5f0; border-radius: 12px; padding: 12px 16px; margin-bottom: 24px; text-align: left; }
+.week-info h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.day-row { font-size: 14px; padding: 4px 0; color: #444; }
+.day-row strong { color: #1a1a1a; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">📋</div>
+  <h1>Wochenplan Update</h1>
+  <p>Klicke auf "Plan jetzt senden" um den aktuellen Wochenplan in Google Sheets zu speichern.</p>
+  
+  <div class="week-info">
+    <h3>Diese Woche</h3>
+    <div id="plan-preview"></div>
+  </div>
+
+  <button class="btn" id="send-btn" onclick="sendPlan()">Plan jetzt senden</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyhCsN29ZTB-67yLRceLX9TPu1rjgXJU1569MzSsaDt2P3uxdbClWuUXRX03ERembc_/exec';
+const SECRET = 'fina2026';
+
+// WOCHENPLAN — wird wöchentlich von Claude aktualisiert
+const PLAN = [
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Jump Squats","saetze":"2","wdh":"5","hinweis":"Maximale Höhe, vollständige Pause"},
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Lateral Bounds + Stick","saetze":"2","wdh":"5 je Seite","hinweis":"Sauberer Stick, Knie nach vorne"},
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Band Knee Drive","saetze":"2","wdh":"8 je Bein","hinweis":"Schnell und explosiv"},
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Sprintstart Audio-Signal","saetze":"4","wdh":"5m","hinweis":"Vollständige Pause zwischen Sprints"},
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Bird Dog","saetze":"2","wdh":"10 je Seite","hinweis":"Rumpf stabil, kein Kippen"},
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Pallof Press dynamisch","saetze":"2","wdh":"10 je Seite","hinweis":"Anti-Rotation, Terraband seitlich"},
+  {"datum":"2026-05-12","tag":"Dienstag","einheit":"Athletik Di","uebung":"Lying Iso-Hold Plank","saetze":"3","wdh":"20 Sek","hinweis":"Volle Spannung"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Lateral Bound + Ball abschirmen","saetze":"2","wdh":"5 je Seite","hinweis":"Sprung, Landung, sofort Zweikampfposition"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"10m Sprint Audio-Signal","saetze":"3","wdh":"10m","hinweis":"Nur 3 Sprints, maximal frisch, lange Pausen"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Einbeinige Glute Bridge auf BOSU","saetze":"2","wdh":"10 je Seite","hinweis":"Hüfte hoch, oben einspannen"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Copenhagen Hold","saetze":"2","wdh":"20 Sek je Seite","hinweis":"Volle Position, Adduktoren stark"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Anti Rotation Hold","saetze":"2","wdh":"20 Sek je Seite","hinweis":"Terraband seitlich, kein Wackeln"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Bird Dog","saetze":"2","wdh":"10 je Seite","hinweis":"Rumpf stabil, kein Kippen"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Pallof Press dynamisch","saetze":"2","wdh":"10 je Seite","hinweis":"Anti-Rotation, Terraband seitlich"},
+  {"datum":"2026-05-14","tag":"Donnerstag","einheit":"Athletik Do","uebung":"Lying Iso-Hold Plank","saetze":"3","wdh":"20 Sek","hinweis":"Volle Spannung"}
+];
+
+// Vorschau anzeigen
+const days = {};
+PLAN.forEach(p => {
+  if(!days[p.tag]) days[p.tag] = {datum: p.datum, count: 0};
+  days[p.tag].count++;
+});
+document.getElementById('plan-preview').innerHTML = Object.entries(days).map(([tag, info]) =>
+  `<div class="day-row"><strong>${tag} ${info.datum}</strong> — ${info.count} Übungen</div>`
+).join('');
+
+async function sendPlan() {
+  const btn = document.getElementById('send-btn');
+  const status = document.getElementById('status');
+  btn.textContent = 'Wird gesendet...';
+  btn.classList.add('loading');
+  btn.disabled = true;
+  status.textContent = '';
+  status.className = 'status';
+  try {
+    const resp = await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'writePlan', secret: SECRET, plan: PLAN})
+    });
+    const data = await resp.json();
+    if(data.status === 'ok') {
+      status.textContent = '✓ Plan erfolgreich gespeichert!';
+      btn.textContent = 'Gespeichert ✓';
+      btn.style.background = '#1D9E75';
+    } else {
+      throw new Error(data.msg);
+    }
+  } catch(e) {
+    status.textContent = 'Fehler: ' + e.message;
+    status.className = 'status err';
+    btn.textContent = 'Nochmal versuchen';
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
