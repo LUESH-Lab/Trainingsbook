@@ -24,62 +24,40 @@
 body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 .screen { display: none; padding-bottom: 90px; }
 .screen.active { display: block; }
-
-/* Header */
 .header { background: var(--bg); padding: 16px 16px 12px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; }
 .header-left h1 { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
 .header-left p { font-size: 13px; color: var(--text2); margin-top: 2px; }
 .header-nav { display: flex; gap: 6px; }
 .nav-arrow { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--card); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--accent); }
 .nav-arrow:disabled { color: var(--text3); border-color: var(--border); }
-
-/* Streak Bar */
 .streak-bar { background: linear-gradient(135deg, #1a1200, #2a1f00); padding: 12px 16px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; }
 .streak-num { font-size: 32px; font-weight: 800; color: var(--accent3); }
 .streak-label { font-size: 13px; color: #cc9900; }
-
-/* Bottom Nav */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom); z-index: 100; }
 .nav-item { flex: 1; padding: 8px 2px 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; cursor: pointer; color: var(--text3); font-size: 9px; font-weight: 500; }
 .nav-item.active { color: var(--accent); }
 .nav-icon { font-size: 20px; }
-
-/* Cards */
 .card { background: var(--card); border-radius: 16px; margin: 12px 16px 0; padding: 16px; border: 0.5px solid var(--border); }
 .card-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
-
-/* Emoji Buttons */
 .emoji-row { display: flex; gap: 8px; }
 .emoji-btn { flex: 1; padding: 12px 4px; border: 1.5px solid var(--border); border-radius: 14px; background: var(--card2); font-size: 22px; text-align: center; cursor: pointer; transition: all 0.12s; }
 .emoji-btn.selected { border-color: var(--accent); background: #00e5a015; transform: scale(1.1); }
-
-/* Tags */
 .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; background: var(--card2); cursor: pointer; color: var(--text2); font-weight: 500; }
 .tag.selected { border-color: var(--accent); background: #00e5a015; color: var(--accent); }
-
-/* Inputs */
 .notiz-input { width: 100%; border: 1.5px solid var(--border); border-radius: 14px; padding: 12px; font-size: 15px; font-family: inherit; color: var(--text); background: var(--card2); resize: none; height: 90px; outline: none; }
 .notiz-input:focus { border-color: var(--accent); }
 .date-input { width: 100%; border: 1.5px solid var(--border); border-radius: 14px; padding: 12px; font-size: 15px; font-family: inherit; background: var(--card2); outline: none; color: var(--text); }
-.date-input:focus { border-color: var(--accent); }
-
-/* Buttons */
-.save-btn { display: block; width: calc(100% - 32px); margin: 16px 16px 0; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: 0.3px; }
+.save-btn { display: block; width: calc(100% - 32px); margin: 16px 16px 0; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer; }
 .save-btn:active { opacity: 0.85; transform: scale(0.98); }
-
-/* Toast */
 .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); padding: 10px 22px; border-radius: 22px; font-size: 14px; font-weight: 600; z-index: 999; opacity: 0; transition: opacity 0.25s; pointer-events: none; color: #000; white-space: nowrap; }
 .toast.show { opacity: 1; }
 .toast.ok { background: var(--accent); }
 .toast.err { background: var(--accent2); color: #fff; }
-
-/* Heute */
 .heute-hero { margin: 12px 16px 0; border-radius: 16px; padding: 20px; background: linear-gradient(135deg, #003d2a, #005a3a); border: 1px solid #00e5a030; }
 .heute-badge { display: inline-block; background: var(--accent); color: #000; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
 .heute-title { font-size: 22px; font-weight: 700; color: var(--text); }
 .heute-sub { font-size: 14px; color: #00e5a099; margin-top: 4px; }
-
 .uebung-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid var(--border); cursor: pointer; }
 .uebung-item:last-child { border-bottom: none; }
 .uebung-check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 1px; background: var(--card2); }
@@ -90,15 +68,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-se
 .uebung-detail { font-size: 13px; color: var(--text2); margin-top: 2px; }
 .uebung-hinweis { font-size: 12px; color: var(--accent); margin-top: 3px; }
 .uebung-item.done .uebung-name { text-decoration: line-through; color: var(--text3); }
-
 .abschluss-btn { display: block; width: calc(100% - 32px); margin: 16px 16px 0; padding: 16px; background: var(--accent2); color: #fff; border: none; border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer; }
-
 .no-plan-card { margin: 12px 16px 0; border-radius: 16px; padding: 24px 20px; background: var(--card); border: 0.5px solid var(--border); text-align: center; }
 .no-plan-icon { font-size: 48px; margin-bottom: 12px; }
 .no-plan-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .no-plan-sub { font-size: 14px; color: var(--text2); line-height: 1.5; }
-
-/* Verlauf */
 .entry-card { background: var(--card); border-radius: 16px; margin: 10px 16px 0; padding: 14px 16px; border: 0.5px solid var(--border); }
 .entry-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .entry-date-label { font-size: 13px; color: var(--text2); font-weight: 600; }
@@ -108,8 +82,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-se
 .etags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
 .etag { font-size: 12px; padding: 3px 10px; border-radius: 10px; background: #00e5a015; color: var(--accent); font-weight: 600; }
 .enote { font-size: 13px; color: var(--text2); font-style: italic; }
-
-/* Stats */
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 16px 0; }
 .stat-card { background: var(--card); border-radius: 16px; padding: 16px; text-align: center; border: 0.5px solid var(--border); }
 .stat-num { font-size: 28px; font-weight: 700; color: var(--text); }
@@ -119,8 +91,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-se
 .week-day-name { font-size: 10px; color: var(--text3); margin-bottom: 4px; font-weight: 600; }
 .week-day-emoji { font-size: 16px; }
 .week-day.has-entry { background: #00e5a015; border-color: var(--accent); }
-
-/* Übungen */
 .uebung-lib-item { background: var(--card); border-radius: 16px; margin: 10px 16px 0; overflow: hidden; border: 0.5px solid var(--border); }
 .uebung-lib-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .uebung-lib-name { font-size: 15px; font-weight: 600; color: var(--text); }
@@ -132,23 +102,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-se
 .search-input { width: calc(100% - 32px); margin: 12px 16px 0; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 14px; font-size: 15px; font-family: inherit; background: var(--card); outline: none; color: var(--text); }
 .search-input:focus { border-color: var(--accent); }
 .search-input::placeholder { color: var(--text3); }
-
-/* Intensity */
 .intensity-row { display: flex; gap: 8px; }
 .int-btn { flex: 1; padding: 12px 4px; border: 1.5px solid var(--border); border-radius: 14px; background: var(--card2); font-size: 12px; text-align: center; cursor: pointer; color: var(--text2); line-height: 1.4; font-weight: 500; }
 .int-btn.selected { border-color: var(--accent); background: #00e5a015; color: var(--accent); font-weight: 700; }
-
-/* Setup */
-.setup-card { background: var(--card); border-radius: 16px; margin: 12px 16px 0; padding: 16px; border: 0.5px solid var(--border); }
-.setup-card p { font-size: 14px; color: var(--text2); line-height: 1.6; }
-.url-input { width: 100%; border: 1.5px solid var(--border); border-radius: 14px; padding: 12px; font-size: 14px; font-family: inherit; background: var(--card2); outline: none; margin-top: 10px; color: var(--text); }
-.url-input:focus { border-color: var(--accent); }
-.action-btn { width: 100%; margin-top: 10px; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
-.status-row { display: flex; align-items: center; gap: 10px; margin: 12px 16px 0; background: var(--card); border-radius: 14px; padding: 14px 16px; border: 0.5px solid var(--border); }
-.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #e67e22; }
-.dot-ok { background: var(--accent) !important; }
-
-/* Confirm */
 .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: flex-end; }
 .confirm-box { background: var(--card); border-radius: 20px 20px 0 0; padding: 24px 20px; width: 100%; border-top: 0.5px solid var(--border); }
 .confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
@@ -305,25 +261,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-se
 </nav>
 
 <script>
-const STORAGE_KEY = 'fina_tb_v5'; // gleicher Key — Daten bleiben erhalten!
+const STORAGE_KEY = 'fina_tb_v5';
 const WEBHOOK_KEY = 'fina_webhook_v3';
-const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbx0npde641aGNWslhBJpBcqNpJL1_P4iRA3BB5ztX3S7-J42raKuh_7qu5FXNlfIepX/exec';
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwLK1SwMJ3SCGNlxGFZB8-G6-_PzPmuU_2V7b0H22KgLeTaKlEDmjOyCvBSCpeqyeHr/exec';
 const emojiMap = {1:'😴',2:'😓',3:'😐',4:'😊',5:'🚀'};
 const moodMap = {1:'😤',2:'😕',3:'😐',4:'😊',5:'🤩'};
 const labelMap = {1:'Sehr schwer',2:'Schwer',3:'Okay',4:'Gut',5:'Top'};
 const navMap = {'screen-heute':'nav-heute','screen-log':'nav-log','screen-history':'nav-history','screen-uebungen':'nav-uebungen','screen-stats':'nav-stats'};
 const vals = {beine:0,energie:0,schlaf:0,stimmung:0};
 let intensityVal='', deleteTarget=null, checkedUebungen={}, currentDayOffset=0;
-
-const TAGESTEXT = {
-  0: { icon:'😴', title:'Ruhetag', sub:'Regeneration ist auch Training.' },
-  1: { icon:'⚽️', title:'Mannschaftstraining', sub:'Mo — Gas geben heute!' },
-  2: { icon:'💥', title:'Athletiktag!', sub:'Di — Heute wird trainiert.' },
-  3: { icon:'⚽️', title:'Mannschaftstraining', sub:'Mi — Alles geben!' },
-  4: { icon:'💥', title:'Athletiktag!', sub:'Do — Heute wird trainiert.' },
-  5: { icon:'⚽️', title:'Mannschaftstraining', sub:'Fr — Letztes Training vor dem Spiel.' },
-  6: { icon:'🏆', title:'Spieltag!', sub:'Sa — Alles rauslassen.' },
-};
 
 const UEBUNGEN_DB = [
   { name:'Bulgarian Split Squat', kat:'Kraft', desc:'Hinteres Bein auf Stuhl/Bank. Vorderes Bein tief in Kniebeuge, 3 Sek exzentrisch absenken. Knie zeigt zum Fuß, nicht einknicken. Oberkörper aufrecht.', cue:'Tempo ersetzt Last — 3 Sek runter, 1 Sek halten, sauber hoch.' },
@@ -406,8 +352,7 @@ function updateStreak(){
 async function renderHeute(){
   const targetDate=getOffsetDate(currentDayOffset);
   const targetStr=formatDateStr(targetDate);
-  const displayStr=formatDateDisplay(targetDate);
-  document.getElementById('heute-title').textContent=displayStr;
+  document.getElementById('heute-title').textContent=formatDateDisplay(targetDate);
   document.getElementById('heute-date').textContent=targetDate.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long'});
   document.getElementById('prev-day').disabled=currentDayOffset<=-3;
   document.getElementById('next-day').disabled=currentDayOffset>=3;
@@ -420,28 +365,48 @@ async function renderHeute(){
     const data=await resp.json();
     if(data.status==='ok'&&data.plan&&data.plan.length){
       const dayPlan=data.plan.filter(p=>p.datum===targetStr);
-      if(dayPlan.length){renderDayPlan(dayPlan,content,targetStr);}
-      else{showNoPlan(content,targetDate);}
-    }else{showNoPlan(content,targetDate);}
-  }catch(e){showNoPlan(content,targetDate);}
+      if(dayPlan.length){
+        const hasUebungen=dayPlan.some(p=>p.uebung);
+        if(hasUebungen){renderDayPlan(dayPlan,content,targetStr);}
+        else{renderDayInfo(dayPlan[0],content);}
+      }else{renderFallback(content,targetDate);}
+    }else{renderFallback(content,targetDate);}
+  }catch(e){renderFallback(content,targetDate);}
 }
 
-function showNoPlan(container,date){
-  const dow=date.getDay();
-  const info=TAGESTEXT[dow]||{icon:'💤',title:'Ruhetag',sub:'Erholung gehört dazu.'};
+function renderDayInfo(dayData, container){
+  container.innerHTML=`<div class="no-plan-card">
+    <div class="no-plan-icon">${dayData.icon||'📅'}</div>
+    <div class="no-plan-title">${dayData.einheit||'Heute'}</div>
+  </div>`;
+}
+
+function renderFallback(container, date){
+  const fallbacks = {
+    0:{icon:'😴',title:'Ruhetag',sub:''},
+    1:{icon:'⚽️',title:'Mannschaftstraining',sub:'Mo — Gas geben!'},
+    2:{icon:'💥',title:'Athletiktag',sub:'Di — Heute wird trainiert.'},
+    3:{icon:'⚽️',title:'Mannschaftstraining',sub:'Mi — Alles geben!'},
+    4:{icon:'💥',title:'Athletiktag',sub:'Do — Heute wird trainiert.'},
+    5:{icon:'⚽️',title:'Mannschaftstraining',sub:'Fr — Letztes Training vor dem Spiel.'},
+    6:{icon:'🏆',title:'Spieltag!',sub:'Sa — Alles rauslassen.'},
+  };
+  const info=fallbacks[date.getDay()]||{icon:'📅',title:'Heute',sub:''};
   container.innerHTML=`<div class="no-plan-card">
     <div class="no-plan-icon">${info.icon}</div>
     <div class="no-plan-title">${info.title}</div>
-    <div class="no-plan-sub">${info.sub}</div>
+    ${info.sub?`<div class="no-plan-sub">${info.sub}</div>`:''}
   </div>`;
 }
 
 function renderDayPlan(plan,container,dateStr){
   const einheit=plan[0].einheit||'Athletiktraining';
+  const icon=plan[0].icon||'💥';
   checkedUebungen={};
-  let html=`<div class="heute-hero"><div class="heute-badge">Heute</div><div class="heute-title">${einheit}</div><div class="heute-sub">${plan.length} Übungen</div></div>`;
+  const uebungen=plan.filter(p=>p.uebung);
+  let html=`<div class="heute-hero"><div class="heute-badge">${icon} Heute</div><div class="heute-title">${einheit}</div><div class="heute-sub">${uebungen.length} Übungen</div></div>`;
   html+='<div class="card"><div class="card-title">Übungen</div>';
-  plan.forEach((u,i)=>{
+  uebungen.forEach((u,i)=>{
     const detail=[u.saetze?u.saetze+' Sätze':'',u.wdh||''].filter(Boolean).join(' · ');
     html+=`<div class="uebung-item" id="uebung-${i}" onclick="toggleUebung(${i})">
       <div class="uebung-check" id="check-${i}"></div>
@@ -455,7 +420,7 @@ function renderDayPlan(plan,container,dateStr){
   html+='</div>';
   if(currentDayOffset===0)html+=`<button class="abschluss-btn" onclick="einheitAbschliessen()">Einheit abgeschlossen 💪</button>`;
   container.innerHTML=html;
-  window._todayPlanCount=plan.length;
+  window._todayPlanCount=uebungen.length;
 }
 
 function toggleUebung(i){
@@ -583,10 +548,8 @@ function renderStats(){
     :'<div style="font-size:14px;color:#00e5a0;padding:4px 0;">Keine kritischen Einträge ✓</div>';
 }
 
-// Setup im Stats-Screen versteckt — URL bleibt gespeichert
 const savedUrl=localStorage.getItem(WEBHOOK_KEY);
 if(!savedUrl)localStorage.setItem(WEBHOOK_KEY,WEBHOOK_URL);
-
 document.getElementById('entry-date').value=formatDateStr(new Date());
 renderHeute();
 </script>
