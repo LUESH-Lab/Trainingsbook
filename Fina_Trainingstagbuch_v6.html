@@ -466,7 +466,7 @@ async function renderHeute(forceRefresh=false){
 function renderFromPlan(plan,targetStr,content,targetDate){
   const dayPlan=plan.filter(p=>p.datum===targetStr);
   if(dayPlan.length){
-    const hasUebungen=dayPlan.some(p=>p.uebung);
+    const hasUebungen=dayPlan.some(p=>p.uebung&&String(p.uebung).trim()!==''&&String(p.uebung).trim().length>2);
     if(hasUebungen){renderDayPlan(dayPlan,content,targetStr);}
     else{renderDayInfo(dayPlan[0],content);}
   }else{showNoPlan(content,targetDate);}
