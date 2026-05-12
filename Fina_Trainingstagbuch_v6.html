@@ -314,22 +314,6 @@ const labelMap = {1:'Sehr schwer',2:'Schwer',3:'Okay',4:'Gut',5:'Top'};
 const navMap = {'screen-heute':'nav-heute','screen-log':'nav-log','screen-history':'nav-history','screen-uebungen':'nav-uebungen','screen-stats':'nav-stats'};
 const vals = {beine:0,energie:0,schlaf:0,stimmung:0};
 let intensityVal='', deleteTarget=null, checkedUebungen={}, currentDayOffset=0;
-const PLAN_CACHE_KEY='fina_plan_cache_v2';
-const PLAN_CACHE_TTL=60*60*1000; // 60 Minuten
-
-function getCachedPlan(){
-  try{
-    const c=JSON.parse(localStorage.getItem(PLAN_CACHE_KEY)||'null');
-    if(c&&(Date.now()-c.ts)<PLAN_CACHE_TTL)return c.plan;
-  }catch(e){}
-  return null;
-}
-function setCachedPlan(plan){
-  localStorage.setItem(PLAN_CACHE_KEY,JSON.stringify({plan,ts:Date.now()}));
-}
-function clearPlanCache(){
-  localStorage.removeItem(PLAN_CACHE_KEY);
-}
 
 const TAGESTEXT = {
   0: { icon:'😴', title:'Ruhetag', sub:'Regeneration ist auch Training.' },
@@ -342,49 +326,33 @@ const TAGESTEXT = {
 };
 
 const UEBUNGEN_DB = [
-  { name:'Bulgarian Split Squat', kat:'Kraft', desc:'Hinteres Bein auf Stuhl/Bank. Vorderes Bein tief in Kniebeuge, 3 Sek exzentrisch absenken. Knie zeigt zum Fuß, nicht einknicken. Oberkörper aufrecht.', cue:'Tempo ersetzt Last — 3 Sek runter, 1 Sek halten, sauber hoch.', vid:'XH9WjEDY-ss' },
-  { name:'Einbeinige RDL', kat:'Kraft', desc:'Auf einem Bein stehen, Knie leicht gebeugt. Oberkörper langsam nach vorne neigen, freies Bein nach hinten. Rücken gerade, 3 Sek runter.', cue:'1–2 kg Hanteln. Tempo betonen.', vid:'pn4ObvnK-EM' },
-  { name:'Jump Squats', kat:'Explosivität', desc:'Aus der Kniebeuge mit voller Kraft nach oben springen. Weich landen, sofort nächste Wiederholung. Maximale Höhe.', cue:'Bei Knie-/Fersenschmerzen sofort Volumen halbieren.', vid:'ptyCQSwW2p4' },
-  { name:'Bulgarian Split Squat explosiv', kat:'Explosivität', desc:'Hinteres Bein auf Bank, tief in Kniebeuge — explosiv hochdrücken, kleiner Sprung möglich. Sauber landen.', cue:'Ohne Last — Explosivität ist der Reiz.', vid:'z_0Uf9HPvtk' },
-  { name:'Lateral Bounds + Stick', kat:'Reaktivität', desc:'Von einem Bein seitlich abspringen, auf dem anderen landen, 2 Sek halten. Knie zeigt nach vorne, nicht einknicken.', cue:'Sauberer Stick. Jede Wdh wie ein Spiel-Moment.', vid:'p_CTpxOQv60' },
-  { name:'Band Knee Drive', kat:'Reaktivität', desc:'Mini-Band um Fuß. Knie schnell und kraftvoll gegen Bandwiderstand nach vorne ziehen. Standbein aktiv stabilisieren.', cue:'Tempo wichtiger als Belastung.', vid:'qxBmBovqmOA' },
+  { name:'Bulgarian Split Squat', kat:'Kraft', desc:'Hinteres Bein auf Stuhl/Bank. Vorderes Bein tief in Kniebeuge, 3 Sek exzentrisch absenken. Knie zeigt zum Fuß, nicht einknicken. Oberkörper aufrecht.', cue:'Tempo ersetzt Last — 3 Sek runter, 1 Sek halten, sauber hoch.' },
+  { name:'Einbeinige RDL', kat:'Kraft', desc:'Auf einem Bein stehen, Knie leicht gebeugt. Oberkörper langsam nach vorne neigen, freies Bein nach hinten. Rücken gerade, 3 Sek runter.', cue:'1–2 kg Hanteln. Tempo betonen.' },
+  { name:'Jump Squats', kat:'Explosivität', desc:'Aus der Kniebeuge mit voller Kraft nach oben springen. Weich landen, sofort nächste Wiederholung. Maximale Höhe.', cue:'Bei Knie-/Fersenschmerzen sofort Volumen halbieren.' },
+  { name:'Bulgarian Split Squat explosiv', kat:'Explosivität', desc:'Hinteres Bein auf Bank, tief in Kniebeuge — explosiv hochdrücken, kleiner Sprung möglich. Sauber landen.', cue:'Ohne Last — Explosivität ist der Reiz.' },
+  { name:'Lateral Bounds + Stick', kat:'Reaktivität', desc:'Von einem Bein seitlich abspringen, auf dem anderen landen, 2 Sek halten. Knie zeigt nach vorne, nicht einknicken.', cue:'Sauberer Stick. Jede Wdh wie ein Spiel-Moment.' },
+  { name:'Band Knee Drive', kat:'Reaktivität', desc:'Mini-Band um Fuß. Knie schnell und kraftvoll gegen Bandwiderstand nach vorne ziehen. Standbein aktiv stabilisieren.', cue:'Tempo wichtiger als Belastung.' },
   { name:'Sprintstart Audio-Signal', kat:'Schnelligkeit', desc:'Handy-Beep zufällig. Beim Signal sofort explosiver 5m Antritt. Gewicht auf den Ballen, Vorlage.', cue:'Nicht antizipieren — wirklich auf den Ton warten.' },
   { name:'10m Sprint Audio-Signal', kat:'Schnelligkeit', desc:'Beim Signal sofort 10m All-out. Vollständige Pause. Nur 3 Sprints in der Peakphase.', cue:'Jeder Sprint maximal frisch — lange Pausen.' },
   { name:'Einbeinstand BOSU + Ballwurf', kat:'Stabilität', desc:'Auf BOSU einbeinig stehen. Ball gegen Wand werfen und auffangen.', cue:'Optional: Augen schließen nach jedem Wurf.' },
-  { name:'Einbeinige Glute Bridge auf BOSU', kat:'Kraft', desc:'Standfuß auf BOSU, anderes Bein gestreckt. Hüfte hochdrücken, oben einspannen, kontrolliert absenken.', cue:'Oben kurz einspannen — Gesäß aktiv.', vid:'T6hZuBA05rg' },
-  { name:'Copenhagen Hold', kat:'Adduktoren', desc:'Seitlage auf Unterarm, oberes Bein mit Schienbein auf Stuhl. Hüfte heben und halten.', cue:'Bei Ziehen in der Leiste sofort pausieren!', vid:'48wlc5zn02A' },
-  { name:'Anti Rotation Hold', kat:'Core', desc:'Terraband seitlich. Arme gestreckt vor Körper. Aktiv verhindern, dass Zug den Körper dreht.', cue:'Kein Wackeln — nur Spannung. Ruhig atmen.', vid:'Swz0BYjamIo' },
-  { name:'Bird Dog', kat:'Core', desc:'Vierfüßlerstand. Gegenüberliegender Arm und Bein gleichzeitig ausstrecken — Linie bilden. Rumpf stabil.', cue:'Langsam und kontrolliert. Hüfte nicht kippen.', vid:'KAV-XQMghD4' },
-  { name:'Pallof Press dynamisch', kat:'Core', desc:'Terraband seitlich. Arme gerade nach vorne strecken und zurück — Band darf nicht zur Seite ziehen.', cue:'Rotationsstabilität für Zweikampf.', vid:'Y0e2w0aKOXw' },
-  { name:'Lying Iso-Hold (Plank)', kat:'Core', desc:'Bauchlage auf Unterarmen, Körper gerade. Volle Spannung von Kopf bis Fuß.', cue:'3×20 Sek mit Pause > 1×60 Sek.', vid:'ZePjhFPqs2Y' },
-  { name:'Flutter Kicks', kat:'Core', desc:'Rückenlage, Beine leicht angehoben, schnell gegenläufig bewegen. Unterer Rücken bleibt am Boden.', cue:'Schnell und gegenläufig.', vid:'QIIvwgE1ows' },
-  { name:'Bicycles', kat:'Core', desc:'Rückenlage, Hände am Kopf. Knie und gegenüberliegender Ellbogen diagonal zusammenführen.', cue:'Qualitativ ausführen — kein Schwung.', vid:'5aCEM-TTL9o' },
-  { name:'Crunches', kat:'Core', desc:'Rückenlage, Knie gebeugt. Oberkörper langsam aufrollen, kurz halten, kontrolliert absenken.', cue:'Qualität statt Volumen.', vid:'_28mzdPw_Dk' },
-  { name:'DB Open Ups', kat:'Mobilität', desc:'1–2 kg Hanteln in Seitenlage. Oberen Arm zur Decke drehen, Brust öffnen. Hüfte fixiert.', cue:'Schulter- und Brustmobilität.', vid:'Wc7B5d4zBhc' },
-  { name:'Reverse Nordic Curl', kat:'Mobilität', desc:'Kniend, Füße flach, Becken kippen. Langsam 3–5 Sek nach hinten lehnen, kein Hohlkreuz.', cue:'Hüftbeuger dehnen — Gegenpol zu Sprints.', vid:'6KSXmTHaugs' },
-  { name:'Dead Bug', kat:'Core', desc:'Rückenlage, Arme zur Decke, Knie 90°. Gegenläufig Arm und Bein Richtung Boden. Rücken am Boden.', cue:'Immer Bodenkontakt des unteren Rückens.', vid:'npZfs3k_dww' },
-  { name:'Side Plank + Abduktion', kat:'Core', desc:'Seitlage auf Unterarm, Hüfte gehoben. Oberes Bein anheben und absenken.', cue:'Hüfte darf nicht absinken.', vid:'t2kLM7IG7Ic' },
+  { name:'Einbeinige Glute Bridge auf BOSU', kat:'Kraft', desc:'Standfuß auf BOSU, anderes Bein gestreckt. Hüfte hochdrücken, oben einspannen, kontrolliert absenken.', cue:'Oben kurz einspannen — Gesäß aktiv.' },
+  { name:'Copenhagen Hold', kat:'Adduktoren', desc:'Seitlage auf Unterarm, oberes Bein mit Schienbein auf Stuhl. Hüfte heben und halten.', cue:'Bei Ziehen in der Leiste sofort pausieren!' },
+  { name:'Anti Rotation Hold', kat:'Core', desc:'Terraband seitlich. Arme gestreckt vor Körper. Aktiv verhindern, dass Zug den Körper dreht.', cue:'Kein Wackeln — nur Spannung. Ruhig atmen.' },
+  { name:'Bird Dog', kat:'Core', desc:'Vierfüßlerstand. Gegenüberliegender Arm und Bein gleichzeitig ausstrecken — Linie bilden. Rumpf stabil.', cue:'Langsam und kontrolliert. Hüfte nicht kippen.' },
+  { name:'Pallof Press dynamisch', kat:'Core', desc:'Terraband seitlich. Arme gerade nach vorne strecken und zurück — Band darf nicht zur Seite ziehen.', cue:'Rotationsstabilität für Zweikampf.' },
+  { name:'Lying Iso-Hold (Plank)', kat:'Core', desc:'Bauchlage auf Unterarmen, Körper gerade. Volle Spannung von Kopf bis Fuß.', cue:'3×20 Sek mit Pause > 1×60 Sek.' },
+  { name:'Flutter Kicks', kat:'Core', desc:'Rückenlage, Beine leicht angehoben, schnell gegenläufig bewegen. Unterer Rücken bleibt am Boden.', cue:'Schnell und gegenläufig.' },
+  { name:'Bicycles', kat:'Core', desc:'Rückenlage, Hände am Kopf. Knie und gegenüberliegender Ellbogen diagonal zusammenführen.', cue:'Qualitativ ausführen — kein Schwung.' },
+  { name:'Crunches', kat:'Core', desc:'Rückenlage, Knie gebeugt. Oberkörper langsam aufrollen, kurz halten, kontrolliert absenken.', cue:'Qualität statt Volumen.' },
+  { name:'DB Open Ups', kat:'Mobilität', desc:'1–2 kg Hanteln in Seitenlage. Oberen Arm zur Decke drehen, Brust öffnen. Hüfte fixiert.', cue:'Schulter- und Brustmobilität.' },
+  { name:'Reverse Nordic Curl', kat:'Mobilität', desc:'Kniend, Füße flach, Becken kippen. Langsam 3–5 Sek nach hinten lehnen, kein Hohlkreuz.', cue:'Hüftbeuger dehnen — Gegenpol zu Sprints.' },
+  { name:'Dead Bug', kat:'Core', desc:'Rückenlage, Arme zur Decke, Knie 90°. Gegenläufig Arm und Bein Richtung Boden. Rücken am Boden.', cue:'Immer Bodenkontakt des unteren Rückens.' },
+  { name:'Side Plank + Abduktion', kat:'Core', desc:'Seitlage auf Unterarm, Hüfte gehoben. Oberes Bein anheben und absenken.', cue:'Hüfte darf nicht absinken.' },
   { name:'Ball abschirmen', kat:'Zweikampf', desc:'Gymnasikball zwischen Körper und Wand. Druck aufbauen, Ball drehen. Nicht verlieren.', cue:'Voller Körpereinsatz — wie im echten Zweikampf.' },
   { name:'Step Up BOSU + Kniehub', kat:'Stabilität', desc:'Fuß auf BOSU, oben anderes Knie hochziehen. Standbein aktiv stabilisieren.', cue:'Aufrecht bleiben — nie einknicken.' },
-  { name:'Blackroll Waden', kat:'Regeneration', desc:'Unterschenkel auf die Rolle legen, Hände abstützen. Langsam von Knöchel bis Kniebeuge rollen. Bei Schmerzpunkten kurz innehalten.', cue:'Links etwas länger bei Wadenproblematik.', vid:'1Cn3GdvZmpI' },
-  { name:'Blackroll Quadrizeps', kat:'Regeneration', desc:'Bauchlage, Rolle unter den Oberschenkeln. Auf Unterarme stützen, langsam vor und zurück rollen.', cue:'Langsam und gleichmäßig.', vid:'1Cn3GdvZmpI' },
-  { name:'Blackroll Hüftbeuger', kat:'Regeneration', desc:'Bauchlage, Rolle schräg unter Hüfte/Leiste. Langsam auf den Hüftbeuger rollen.', cue:'Bei Schmerzpunkten 20–30 Sek halten.', vid:'1Cn3GdvZmpI' },
-  { name:'Blackroll IT-Band', kat:'Regeneration', desc:'Seitlage, Rolle unter der Außenseite des Oberschenkels. Von Hüfte bis Knieaußenseite rollen.', cue:'Langsam arbeiten — oft sehr schmerzhaft.', vid:'1Cn3GdvZmpI' },
-  { name:'Blackroll Adduktoren', kat:'Regeneration', desc:'Bauchlage, ein Bein seitlich anwinkeln, Rolle unter die Innenseite des Oberschenkels.', cue:'Bei Leistenbeschwerden vorsichtig.', vid:'1Cn3GdvZmpI' },
-  { name:'Blackroll Hamstrings', kat:'Regeneration', desc:'Sitzend auf der Rolle, Hände abstützen. Rolle unter die Oberschenkelrückseite. Von Knie bis Gesäß rollen.', cue:'Bei Schmerzen langsamer werden.', vid:'1Cn3GdvZmpI' },
-  { name:'Blackroll Glutes', kat:'Regeneration', desc:'Sitzend auf der Rolle, leicht zur Seite kippen. Kleine Kreisbewegungen. Dann Seite wechseln.', cue:'Auf Schmerzpunkten kurz halten.', vid:'1Cn3GdvZmpI' },
-  { name:'Wadendehnung passiv', kat:'Mobilität', desc:'An der Wand abstützen, hinteres Bein gestreckt, Ferse bleibt am Boden. Bis Zug in der Wade spürbar.', cue:'Ferse muss am Boden bleiben.' },
-  { name:'Tiefe Hocke halten', kat:'Mobilität', desc:'Füße schulterbreit, Zehen leicht nach außen. Tief in die Hocke, Fersen am Boden. Ellbogen gegen Knie, Brust aufrecht.', cue:'Fersen am Boden halten.' },
-  { name:"World's Greatest Stretch", kat:'Mobilität', desc:'Tiefer Ausfallschritt, hinteres Knie über dem Boden. Ellbogen zum Boden neben den Fuß, dann Arm zur Decke drehen.', cue:'Langsam und kontrolliert — eine der besten Ganzkörper-Mobilityübungen.', vid:'-CiWQ2IvY34' },
-  { name:'Hüftöffner 90/90', kat:'Mobilität', desc:'Sitzend, beide Beine in 90° — ein Bein vor dem Körper, eines seitlich. Oberkörper zur vorderen Hüfte lehnen. Seiten wechseln.', cue:'Dehnung spürbar in der Außenhüfte.', vid:'t4Zz6-aG8Iw' },
-  { name:'Hüftmobilität dynamisch', kat:'Mobilität', desc:'Im Stehen Hüftkreisen, Knie zur Brust ziehen, Bein seitlich schwingen. Locker und dynamisch.', cue:'Gut als Warm-Up — weckt die Hüfte auf.' },
-  { name:'Skippings', kat:'Aktivierung', desc:'Knie abwechselnd schnell hochziehen, Arme mitschwingen. Auf den Ballen bleiben, aufrechte Körperhaltung.', cue:'NUR wenn Beine mind. 4/5 — sonst weglassen.' },
-  { name:'Mini-Band Side-Walks', kat:'Aktivierung', desc:'Knöchelband anlegen, leichte Halbkniebeuge. Seitlich gehen ohne das Band zusammenzudrücken.', cue:'Knie zeigen nach außen — nicht einknicken.', vid:'y_bqFDQZSHQ' },
-  { name:'Glute Bridge', kat:'Aktivierung', desc:'Rückenlage, Knie gebeugt, Füße flach. Hüfte hochdrücken bis Schultern-Hüfte-Knie eine Linie bilden. Oben einspannen.', cue:'Gesäß oben aktiv einspannen.', vid:'49cnkvTTzgw' },
-  { name:'Sprintansätze 70%', kat:'Aktivierung', desc:'Aus dem Stand locker anlaufen, 70% des maximalen Tempos. Beine wecken ohne zu ermüden.', cue:'Locker bleiben — Aktivierung, kein All-out.' },
 ];
 
-const katColors = { 'Kraft':'#3498db','Explosivität':'#ff4d6d','Reaktivität':'#9b59b6','Schnelligkeit':'#ffd60a','Stabilität':'#00e5a0','Core':'#00e5a0','Adduktoren':'#ff8c42','Mobilität':'#888899','Zweikampf':'#ff4d6d','Regeneration':'#1abc9c','Aktivierung':'#e67e22' };
+const katColors = { 'Kraft':'#3498db','Explosivität':'#ff4d6d','Reaktivität':'#9b59b6','Schnelligkeit':'#ffd60a','Stabilität':'#00e5a0','Core':'#00e5a0','Adduktoren':'#ff8c42','Mobilität':'#888899','Zweikampf':'#ff4d6d' };
 
 function getEntries(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch(e){return[];}}
 function saveEntries(e){localStorage.setItem(STORAGE_KEY,JSON.stringify(e));}
@@ -418,7 +386,6 @@ function formatDateDisplay(d){
   return d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long'});
 }
 
-function filterUebungen(val){renderUebungen(val);}
 function changeDay(dir){currentDayOffset+=dir;renderHeute();}
 
 function calcStreak(){
@@ -436,7 +403,7 @@ function updateStreak(){
   bar.innerHTML=`<span class="streak-num">${s}</span><span class="streak-label">Tage am Stück ${flames}</span>`;
 }
 
-async function renderHeute(forceRefresh=false){
+async function renderHeute(){
   const targetDate=getOffsetDate(currentDayOffset);
   const targetStr=formatDateStr(targetDate);
   const displayStr=formatDateDisplay(targetDate);
@@ -446,43 +413,17 @@ async function renderHeute(forceRefresh=false){
   document.getElementById('next-day').disabled=currentDayOffset>=6;
   if(currentDayOffset===0)updateStreak();
   const content=document.getElementById('heute-content');
-
-  let plan=null;
-  if(!forceRefresh){plan=getCachedPlan();}
-  if(plan){renderFromPlan(plan,targetStr,content,targetDate);return;}
-
   content.innerHTML='<div style="text-align:center;padding:2rem;color:#555566;">⏳</div>';
   const wh=getWebhook();
   try{
     const resp=await fetch(wh+'?action=plan',{mode:'cors'});
     const data=await resp.json();
     if(data.status==='ok'&&data.plan&&data.plan.length){
-      setCachedPlan(data.plan);
-      renderFromPlan(data.plan,targetStr,content,targetDate);
+      const dayPlan=data.plan.filter(p=>p.datum===targetStr);
+      if(dayPlan.length){renderDayPlan(dayPlan,content,targetStr);}
+      else{showNoPlan(content,targetDate);}
     }else{showNoPlan(content,targetDate);}
   }catch(e){showNoPlan(content,targetDate);}
-}
-
-function renderFromPlan(plan,targetStr,content,targetDate){
-  const dayPlan=plan.filter(p=>p.datum===targetStr);
-  if(dayPlan.length){
-    const echteUebungen=dayPlan.filter(p=>p.uebung&&String(p.uebung).trim()!=='');
-    if(echteUebungen.length){
-      renderDayPlan(dayPlan,content,targetStr);
-    }else{
-      const icon=dayPlan[0].icon||'📅';
-      const einheit=dayPlan[0].einheit||'Heute';
-      content.innerHTML=`<div class="no-plan-card">
-        <div class="no-plan-icon">${icon}</div>
-        <div class="no-plan-title">${einheit}</div>
-      </div>`;
-    }
-  }else{showNoPlan(content,targetDate);}
-  const btn=document.createElement('button');
-  btn.style.cssText='display:block;width:calc(100% - 32px);margin:12px 16px 0;padding:10px;background:transparent;color:var(--text3);border:0.5px solid var(--border);border-radius:12px;font-size:13px;cursor:pointer;';
-  btn.textContent='🔄 Plan aktualisieren';
-  btn.onclick=()=>{clearPlanCache();showToast('Wird aktualisiert…');renderHeute(true);};
-  content.appendChild(btn);
 }
 
 function showNoPlan(container,date){
@@ -497,13 +438,12 @@ function showNoPlan(container,date){
 
 function renderDayPlan(plan,container,dateStr){
   const einheit=plan[0].einheit||'Athletiktraining';
-  const isAthletik=einheit.toLowerCase().includes('athletik');
+  const icon=plan[0].icon||'📅';
   const uebungen=plan.filter(u=>u.uebung&&String(u.uebung).trim()!=='');
   checkedUebungen={};
 
+  // Keine echten Übungen — nur Info-Karte
   if(!uebungen.length){
-    // Kein Übungen — nur Info-Karte zeigen
-    const icon=plan[0].icon||'📅';
     container.innerHTML=`<div class="no-plan-card">
       <div class="no-plan-icon">${icon}</div>
       <div class="no-plan-title">${einheit}</div>
@@ -515,29 +455,19 @@ function renderDayPlan(plan,container,dateStr){
   html+='<div class="card"><div class="card-title">Übungen</div>';
   uebungen.forEach((u,i)=>{
     const detail=[u.saetze?u.saetze+' Sätze':'',u.wdh||''].filter(Boolean).join(' · ');
-    if(isAthletik){
-      html+=`<div class="uebung-item" id="uebung-${i}" onclick="toggleUebung(${i})">
-        <div class="uebung-check" id="check-${i}"></div>
-        <div class="uebung-info">
-          <div class="uebung-name">${u.uebung}</div>
-          ${detail?`<div class="uebung-detail">${detail}</div>`:''}
-          ${u.hinweis?`<div class="uebung-hinweis">💡 ${u.hinweis}</div>`:''}
-        </div>
-      </div>`;
-    } else {
-      html+=`<div class="uebung-item" style="cursor:default;">
-        <div class="uebung-info">
-          <div class="uebung-name">${u.uebung}</div>
-          ${detail?`<div class="uebung-detail">${detail}</div>`:''}
-          ${u.hinweis?`<div class="uebung-hinweis">💡 ${u.hinweis}</div>`:''}
-        </div>
-      </div>`;
-    }
+    html+=`<div class="uebung-item" id="uebung-${i}" onclick="toggleUebung(${i})">
+      <div class="uebung-check" id="check-${i}"></div>
+      <div class="uebung-info">
+        <div class="uebung-name">${u.uebung}</div>
+        ${detail?`<div class="uebung-detail">${detail}</div>`:''}
+        ${u.hinweis?`<div class="uebung-hinweis">💡 ${u.hinweis}</div>`:''}
+      </div>
+    </div>`;
   });
   html+='</div>';
-  if(isAthletik&&currentDayOffset===0)html+=`<button class="abschluss-btn" onclick="einheitAbschliessen()">Einheit abgeschlossen 💪</button>`;
+  if(currentDayOffset===0)html+=`<button class="abschluss-btn" onclick="einheitAbschliessen()">Einheit abgeschlossen 💪</button>`;
   container.innerHTML=html;
-  window._todayPlanCount=isAthletik?uebungen.length:0;
+  window._todayPlanCount=uebungen.length;
 }
 
 function toggleUebung(i){
@@ -630,27 +560,11 @@ function renderUebungen(filter=''){
       <div class="uebung-lib-body" id="lib-${i}">
         <div class="uebung-lib-desc">${u.desc}</div>
         <div class="uebung-lib-cue">💡 ${u.cue}</div>
-        ${u.vid?`
-        <div id="vid-container-${i}" style="margin-top:12px;">
-          <button onclick="loadVid(${i},'${u.vid}')" style="width:100%;padding:10px;background:#ff0000;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">▶ Video ansehen</button>
-        </div>`:''}
       </div>
     </div>`).join('');
 }
 function toggleLib(i){document.getElementById('lib-'+i).classList.toggle('open');}
-function loadVid(i,vid){
-  const c=document.getElementById('vid-container-'+i);
-  c.innerHTML=`<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;margin-top:4px;">
-    <iframe src="https://www.youtube.com/embed/${vid}?autoplay=1" 
-      style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:10px;" 
-      allow="autoplay;encrypted-media" allowfullscreen
-      onerror="this.parentElement.parentElement.innerHTML='<a href=\\'https://www.youtube.com/watch?v=${vid}\\' target=\\'_blank\\' style=\\'display:block;width:100%;padding:10px;background:#ff0000;color:#fff;border-radius:10px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;\\'>▶ Auf YouTube öffnen</a>'">
-    </iframe>
-  </div>
-  <div style="text-align:center;margin-top:6px;">
-    <a href="https://www.youtube.com/watch?v=${vid}" target="_blank" style="font-size:12px;color:var(--text3);">↗ In YouTube öffnen</a>
-  </div>`;
-}
+function filterUebungen(val){renderUebungen(val);}
 
 function avg(arr){const v=arr.filter(x=>x>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
 
