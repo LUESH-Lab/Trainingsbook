@@ -466,9 +466,18 @@ async function renderHeute(forceRefresh=false){
 function renderFromPlan(plan,targetStr,content,targetDate){
   const dayPlan=plan.filter(p=>p.datum===targetStr);
   if(dayPlan.length){
-    const hasUebungen=dayPlan.some(p=>p.uebung&&String(p.uebung).trim()!==''&&String(p.uebung).trim().length>2);
-    if(hasUebungen){renderDayPlan(dayPlan,content,targetStr);}
-    else{renderDayInfo(dayPlan[0],content);}
+    const echteUebungen=dayPlan.filter(p=>p.uebung&&String(p.uebung).trim().length>2);
+    if(echteUebungen.length){
+      renderDayPlan(dayPlan,content,targetStr);
+    }else{
+      // Nur Info-Karte — kein Übungen-Block
+      const icon=dayPlan[0].icon||'📅';
+      const einheit=dayPlan[0].einheit||'Heute';
+      content.innerHTML=`<div class="no-plan-card">
+        <div class="no-plan-icon">${icon}</div>
+        <div class="no-plan-title">${einheit}</div>
+      </div>`;
+    }
   }else{showNoPlan(content,targetDate);}
   const btn=document.createElement('button');
   btn.style.cssText='display:block;width:calc(100% - 32px);margin:12px 16px 0;padding:10px;background:transparent;color:var(--text3);border:0.5px solid var(--border);border-radius:12px;font-size:13px;cursor:pointer;';
