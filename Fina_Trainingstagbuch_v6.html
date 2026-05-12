@@ -490,10 +490,22 @@ function showNoPlan(container,date){
 function renderDayPlan(plan,container,dateStr){
   const einheit=plan[0].einheit||'Athletiktraining';
   const isAthletik=einheit.toLowerCase().includes('athletik');
+  const uebungen=plan.filter(u=>u.uebung&&String(u.uebung).trim()!=='');
   checkedUebungen={};
-  let html=`<div class="heute-hero"><div class="heute-badge">Heute</div><div class="heute-title">${einheit}</div><div class="heute-sub">${plan.length} Übungen</div></div>`;
+
+  if(!uebungen.length){
+    // Kein Übungen — nur Info-Karte zeigen
+    const icon=plan[0].icon||'📅';
+    container.innerHTML=`<div class="no-plan-card">
+      <div class="no-plan-icon">${icon}</div>
+      <div class="no-plan-title">${einheit}</div>
+    </div>`;
+    return;
+  }
+
+  let html=`<div class="heute-hero"><div class="heute-badge">Heute</div><div class="heute-title">${einheit}</div><div class="heute-sub">${uebungen.length} Übungen</div></div>`;
   html+='<div class="card"><div class="card-title">Übungen</div>';
-  plan.forEach((u,i)=>{
+  uebungen.forEach((u,i)=>{
     const detail=[u.saetze?u.saetze+' Sätze':'',u.wdh||''].filter(Boolean).join(' · ');
     if(isAthletik){
       html+=`<div class="uebung-item" id="uebung-${i}" onclick="toggleUebung(${i})">
@@ -517,7 +529,7 @@ function renderDayPlan(plan,container,dateStr){
   html+='</div>';
   if(isAthletik&&currentDayOffset===0)html+=`<button class="abschluss-btn" onclick="einheitAbschliessen()">Einheit abgeschlossen 💪</button>`;
   container.innerHTML=html;
-  window._todayPlanCount=isAthletik?plan.length:0;
+  window._todayPlanCount=isAthletik?uebungen.length:0;
 }
 
 function toggleUebung(i){
