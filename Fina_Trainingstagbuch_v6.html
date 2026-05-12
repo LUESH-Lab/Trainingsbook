@@ -314,7 +314,7 @@ const labelMap = {1:'Sehr schwer',2:'Schwer',3:'Okay',4:'Gut',5:'Top'};
 const navMap = {'screen-heute':'nav-heute','screen-log':'nav-log','screen-history':'nav-history','screen-uebungen':'nav-uebungen','screen-stats':'nav-stats'};
 const vals = {beine:0,energie:0,schlaf:0,stimmung:0};
 let intensityVal='', deleteTarget=null, checkedUebungen={}, currentDayOffset=0;
-const PLAN_CACHE_KEY='fina_plan_cache_v1';
+const PLAN_CACHE_KEY='fina_plan_cache_v2';
 const PLAN_CACHE_TTL=60*60*1000; // 60 Minuten
 
 function getCachedPlan(){
@@ -466,11 +466,10 @@ async function renderHeute(forceRefresh=false){
 function renderFromPlan(plan,targetStr,content,targetDate){
   const dayPlan=plan.filter(p=>p.datum===targetStr);
   if(dayPlan.length){
-    const echteUebungen=dayPlan.filter(p=>p.uebung&&String(p.uebung).trim().length>2);
+    const echteUebungen=dayPlan.filter(p=>p.uebung&&String(p.uebung).trim()!=='');
     if(echteUebungen.length){
       renderDayPlan(dayPlan,content,targetStr);
     }else{
-      // Nur Info-Karte — kein Übungen-Block
       const icon=dayPlan[0].icon||'📅';
       const einheit=dayPlan[0].einheit||'Heute';
       content.innerHTML=`<div class="no-plan-card">
