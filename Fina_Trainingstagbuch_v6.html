@@ -314,6 +314,11 @@ const labelMap = {1:'Sehr schwer',2:'Schwer',3:'Okay',4:'Gut',5:'Top'};
 const navMap = {'screen-heute':'nav-heute','screen-log':'nav-log','screen-history':'nav-history','screen-uebungen':'nav-uebungen','screen-stats':'nav-stats'};
 const vals = {beine:0,energie:0,schlaf:0,stimmung:0};
 let intensityVal='', deleteTarget=null, checkedUebungen={}, currentDayOffset=0;
+const PLAN_CACHE_KEY='fina_plan_cache_v1';
+const PLAN_CACHE_TTL=60*60*1000;
+function getCachedPlan(){try{const c=JSON.parse(localStorage.getItem(PLAN_CACHE_KEY)||'null');if(c&&(Date.now()-c.ts)<PLAN_CACHE_TTL)return c.plan;}catch(e){}return null;}
+function setCachedPlan(plan){localStorage.setItem(PLAN_CACHE_KEY,JSON.stringify({plan,ts:Date.now()}));}
+function clearPlanCache(){localStorage.removeItem(PLAN_CACHE_KEY);}
 
 const TAGESTEXT = {
   0: { icon:'😴', title:'Ruhetag', sub:'Regeneration ist auch Training.' },
@@ -419,27 +424,42 @@ function updateStreak(){
   bar.innerHTML=`<span class="streak-num">${s}</span><span class="streak-label">Tage am Stück ${flames}</span>`;
 }
 
-async function renderHeute(){
+async function renderHeute(forceRefresh=false){
   const targetDate=getOffsetDate(currentDayOffset);
   const targetStr=formatDateStr(targetDate);
-  const displayStr=formatDateDisplay(targetDate);
-  document.getElementById('heute-title').textContent=displayStr;
+  document.getElementById('heute-title').textContent=formatDateDisplay(targetDate);
   document.getElementById('heute-date').textContent=targetDate.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long'});
   document.getElementById('prev-day').disabled=currentDayOffset<=-6;
   document.getElementById('next-day').disabled=currentDayOffset>=6;
   if(currentDayOffset===0)updateStreak();
   const content=document.getElementById('heute-content');
+
+  if(!forceRefresh){
+    const cached=getCachedPlan();
+    if(cached){renderDayFromPlan(cached,targetStr,content,targetDate);return;}
+  }
+
   content.innerHTML='<div style="text-align:center;padding:2rem;color:#555566;">⏳</div>';
   const wh=getWebhook();
   try{
     const resp=await fetch(wh+'?action=plan',{mode:'cors'});
     const data=await resp.json();
     if(data.status==='ok'&&data.plan&&data.plan.length){
-      const dayPlan=data.plan.filter(p=>p.datum===targetStr);
-      if(dayPlan.length){renderDayPlan(dayPlan,content,targetStr);}
-      else{showNoPlan(content,targetDate);}
+      setCachedPlan(data.plan);
+      renderDayFromPlan(data.plan,targetStr,content,targetDate);
     }else{showNoPlan(content,targetDate);}
   }catch(e){showNoPlan(content,targetDate);}
+}
+
+function renderDayFromPlan(plan,targetStr,content,targetDate){
+  const dayPlan=plan.filter(p=>p.datum===targetStr);
+  if(dayPlan.length){renderDayPlan(dayPlan,content,targetStr);}
+  else{showNoPlan(content,targetDate);}
+  const btn=document.createElement('button');
+  btn.style.cssText='display:block;width:calc(100% - 32px);margin:12px 16px 0;padding:10px;background:transparent;color:var(--text3);border:0.5px solid var(--border);border-radius:12px;font-size:13px;cursor:pointer;';
+  btn.textContent='🔄 Plan aktualisieren';
+  btn.onclick=()=>{clearPlanCache();showToast('Wird aktualisiert…');renderHeute(true);};
+  content.appendChild(btn);
 }
 
 function showNoPlan(container,date){
@@ -454,22 +474,10 @@ function showNoPlan(container,date){
 
 function renderDayPlan(plan,container,dateStr){
   const einheit=plan[0].einheit||'Athletiktraining';
-  const icon=plan[0].icon||'📅';
-  const uebungen=plan.filter(u=>u.uebung&&String(u.uebung).trim()!=='');
   checkedUebungen={};
-
-  // Keine echten Übungen — nur Info-Karte
-  if(!uebungen.length){
-    container.innerHTML=`<div class="no-plan-card">
-      <div class="no-plan-icon">${icon}</div>
-      <div class="no-plan-title">${einheit}</div>
-    </div>`;
-    return;
-  }
-
-  let html=`<div class="heute-hero"><div class="heute-badge">Heute</div><div class="heute-title">${einheit}</div><div class="heute-sub">${uebungen.length} Übungen</div></div>`;
+  let html=`<div class="heute-hero"><div class="heute-badge">Heute</div><div class="heute-title">${einheit}</div><div class="heute-sub">${plan.length} Übungen</div></div>`;
   html+='<div class="card"><div class="card-title">Übungen</div>';
-  uebungen.forEach((u,i)=>{
+  plan.forEach((u,i)=>{
     const detail=[u.saetze?u.saetze+' Sätze':'',u.wdh||''].filter(Boolean).join(' · ');
     html+=`<div class="uebung-item" id="uebung-${i}" onclick="toggleUebung(${i})">
       <div class="uebung-check" id="check-${i}"></div>
@@ -483,7 +491,7 @@ function renderDayPlan(plan,container,dateStr){
   html+='</div>';
   if(currentDayOffset===0)html+=`<button class="abschluss-btn" onclick="einheitAbschliessen()">Einheit abgeschlossen 💪</button>`;
   container.innerHTML=html;
-  window._todayPlanCount=uebungen.length;
+  window._todayPlanCount=plan.length;
 }
 
 function toggleUebung(i){
@@ -576,25 +584,16 @@ function renderUebungen(filter=''){
       <div class="uebung-lib-body" id="lib-${i}">
         <div class="uebung-lib-desc">${u.desc}</div>
         <div class="uebung-lib-cue">💡 ${u.cue}</div>
-        ${u.vid?`
-        <div id="vid-container-${i}" style="margin-top:12px;">
-          <button onclick="loadVid(${i},'${u.vid}')" style="width:100%;padding:10px;background:#ff0000;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">▶ Video ansehen</button>
-        </div>`:''}
+        ${u.vid?`<div id="vid-container-${i}" style="margin-top:12px;"><button onclick="loadVid(${i},'${u.vid}')" style="width:100%;padding:10px;background:#ff0000;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">▶ Video ansehen</button></div>`:''}
       </div>
     </div>`).join('');
 }
 function toggleLib(i){document.getElementById('lib-'+i).classList.toggle('open');}
 function loadVid(i,vid){
   const c=document.getElementById('vid-container-'+i);
-  c.innerHTML=`<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;margin-top:4px;">
-    <iframe src="https://www.youtube.com/embed/${vid}?autoplay=1"
-      style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:10px;"
-      allow="autoplay;encrypted-media" allowfullscreen></iframe>
-  </div>
-  <div style="text-align:center;margin-top:6px;">
-    <a href="https://www.youtube.com/watch?v=${vid}" target="_blank" style="font-size:12px;color:var(--text3);">↗ In YouTube öffnen</a>
-  </div>`;
+  c.innerHTML=`<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;margin-top:4px;"><iframe src="https://www.youtube.com/embed/${vid}?autoplay=1" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:10px;" allow="autoplay;encrypted-media" allowfullscreen></iframe></div><div style="text-align:center;margin-top:6px;"><a href="https://www.youtube.com/watch?v=${vid}" target="_blank" style="font-size:12px;color:var(--text3);">↗ In YouTube öffnen</a></div>`;
 }
+function filterUebungen(val){renderUebungen(val);}
 
 function avg(arr){const v=arr.filter(x=>x>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
 
