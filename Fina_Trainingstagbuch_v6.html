@@ -457,7 +457,7 @@ function showNoPlan(container,date){
 
 function renderDayPlan(plan,container,dateStr){
   const einheit=plan[0].einheit||'Athletiktraining';
-  const uebungen=plan.filter(u=>u.uebung&&String(u.uebung).trim()!=='');
+  const uebungen=plan.filter(u=>u.uebung&&typeof u.uebung==='string'&&u.uebung.trim().length>2);
   const info=getEinheitInfo(einheit);
   const iconFromSheets=plan[0].icon&&String(plan[0].icon).trim()!==''?plan[0].icon:null;
   const icon=iconFromSheets||info.icon;
