@@ -478,6 +478,7 @@ async function renderHeute(forceRefresh=false){
 
 function renderDayFromPlan(plan,targetStr,content,targetDate){
   const dayPlan=plan.filter(p=>p.datum===targetStr);
+  console.log('targetStr:',targetStr,'dayPlan:',dayPlan.length,'plan dates:',plan.map(p=>p.datum).slice(0,5));
   if(dayPlan.length){renderDayPlan(dayPlan,content,targetStr);}
   else{showNoPlan(content,targetDate);}
   const btn=document.createElement('button');
