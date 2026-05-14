@@ -416,7 +416,12 @@ function showScreen(id){
 
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),2500);}
 
-function getOffsetDate(offset){const d=new Date();d.setDate(d.getDate()+offset);return d;}
+function getOffsetDate(offset){
+  const d=new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()+offset);
+  return d;
+}
 function formatDateStr(d){
   const year=d.getFullYear();
   const month=String(d.getMonth()+1).padStart(2,'0');
